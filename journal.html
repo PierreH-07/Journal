@@ -497,7 +497,7 @@
       </div>
       <div class="section-body">
         <table class="result-table">
-          <thead><tr><th style="width:20%">Nageur·se</th><th style="width:22%">Épreuve</th><th style="width:12%">Tour</th><th style="width:15%">A nagé ?</th><th style="width:12%">Temps</th><th style="width:7%">Rang</th><th>Observations</th></tr></thead>
+          <thead><tr><th style="width:18%">Nageur·se</th><th style="width:20%">Épreuve</th><th style="width:10%">Tour</th><th style="width:12%">A nagé ?</th><th style="width:10%">Temps</th><th style="width:6%">Rang</th><th style="width:10%">Rang init. → Δ</th><th>Observations</th></tr></thead>
           <tbody id="results-tbody"></tbody>
         </table>
         <div style="font-size:12px;color:var(--hint)">Le programme est pré-rempli depuis les épreuves du jour.</div>
@@ -1639,13 +1639,26 @@ function fillPostcompForm(d) {
 function renderResultsTable() {
   const tbody = document.getElementById('results-tbody');
   if (!currentEvents.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:1rem;color:var(--hint);font-size:13px">Aucune épreuve prévue ce jour</td></tr>'; return;
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:1rem;color:var(--hint);font-size:13px">Aucune épreuve prévue ce jour</td></tr>'; return;
   }
   tbody.innerHTML = currentEvents.map(ev => {
     const rs = resultStates[ev.id] || {};
     const anage = rs.a_nage !== undefined ? rs.a_nage : true;
     const tourClass = ev.tour==='finale' ? 'tour-finale' : ev.tour==='demi-finale' ? 'tour-demi' : 'tour-serie';
     const te = ev.temps_engagement ? `<br><span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--hint)">Réf: ${ev.temps_engagement}</span>` : '';
+    // Delta ranking_initial → rang final
+    let deltaHtml = '—';
+    if (ev.ranking_initial != null) {
+      const rangFinal = rs.rang ? parseInt(rs.rang) : null;
+      if (rangFinal) {
+        const delta = ev.ranking_initial - rangFinal;
+        const color = delta > 0 ? 'var(--success)' : delta < 0 ? 'var(--error)' : 'var(--muted)';
+        const sign  = delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '= ';
+        deltaHtml = `<span style="font-size:11px;font-weight:600;color:var(--muted)">#${ev.ranking_initial}</span><br><span style="font-size:11px;font-weight:600;color:${color}">${sign}${delta}</span>`;
+      } else {
+        deltaHtml = `<span style="font-size:11px;color:var(--muted)">#${ev.ranking_initial}</span>`;
+      }
+    }
     return `<tr>
       <td><strong style="font-size:12px">${ev.athletes.prenom}<br>${ev.athletes.nom}</strong></td>
       <td style="font-size:12px">${ev.epreuve}${ev.heure?'<br><span style="color:var(--hint);font-size:11px;font-family:DM Mono,monospace">'+ev.heure.slice(0,5)+'</span>':''}${te}</td>
@@ -1656,6 +1669,7 @@ function renderResultsTable() {
       </div></td>
       <td><input type="text" value="${rs.temps||''}" placeholder="58.42" style="width:70px" oninput="setResult('${ev.id}','temps',this.value)"></td>
       <td><input type="text" value="${rs.rang||''}"  placeholder="4"     style="width:45px" oninput="setResult('${ev.id}','rang',this.value)"></td>
+      <td style="text-align:center;line-height:1.4">${deltaHtml}</td>
       <td><input type="text" value="${rs.observations||''}" placeholder="Observations…" oninput="setResult('${ev.id}','observations',this.value)"></td>
     </tr>`;
   }).join('');
@@ -1666,7 +1680,29 @@ function setNage(eid, val, btn) {
   btn.closest('tr').querySelectorAll('.nage-btn').forEach(b => b.className='nage-btn');
   btn.classList.add(val ? 'oui' : 'non');
 }
-function setResult(eid, f, v) { if (!resultStates[eid]) resultStates[eid] = {}; resultStates[eid][f] = v; }
+function setResult(eid, f, val) {
+  if (!resultStates[eid]) resultStates[eid] = {};
+  resultStates[eid][f] = val;
+  // Recalcul live du delta rang uniquement
+  if (f === 'rang') {
+    const ev = currentEvents.find(e => e.id === eid);
+    if (ev && ev.ranking_initial != null) {
+      const row = document.querySelector(`input[oninput*="'${eid}','rang'"]`)?.closest('tr');
+      if (row) {
+        const deltaCell = row.cells[6];
+        const rangFinal = val ? parseInt(val) : null;
+        if (rangFinal) {
+          const delta = ev.ranking_initial - rangFinal;
+          const color = delta > 0 ? 'var(--success)' : delta < 0 ? 'var(--error)' : 'var(--muted)';
+          const sign  = delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '= ';
+          deltaCell.innerHTML = `<span style="font-size:11px;font-weight:600;color:var(--muted)">#${ev.ranking_initial}</span><br><span style="font-size:11px;font-weight:600;color:${color}">${sign}${delta}</span>`;
+        } else {
+          deltaCell.innerHTML = `<span style="font-size:11px;color:var(--muted)">#${ev.ranking_initial}</span>`;
+        }
+      }
+    }
+  }
+}
 
 // ── NON-COMPÉTITEURS ────────────────────────────────────────
 async function loadNonCompetitors(date) {
@@ -2044,7 +2080,7 @@ function renderStars(containerId, key, currentVal) {
 }
 
 async function loadPostcompPerformances() {
-  const { data } = await sb.from('results').select('*, events(epreuve, tour, temps_engagement, date_epreuve, athletes(prenom, nom))').eq('competition_id', activeCompId).eq('a_nage', true);
+  const { data } = await sb.from('results').select('*, events(epreuve, tour, temps_engagement, ranking_initial, date_epreuve, athletes(prenom, nom))').eq('competition_id', activeCompId).eq('a_nage', true);
   const container = document.getElementById('postcomp-staff-perf-table'); if (!container) return;
   if (!data?.length) { container.innerHTML = '<div style="color:var(--hint);font-size:13px">Aucun résultat enregistré</div>'; return; }
   const toSec = t => { if (!t) return null; const p = t.split(':'); return p.length===2 ? parseFloat(p[0])*60+parseFloat(p[1]) : parseFloat(t); };

@@ -449,6 +449,7 @@
               <div><label>Date *</label><input type="date" id="ev-date"></div>
               <div><label>Heure</label><input type="time" id="ev-heure"></div>
               <div id="ev-engagement-wrap"><label>Temps engagement <small style="font-weight:400;color:var(--hint)">(référence)</small></label><input type="text" id="ev-engagement" placeholder="58.42"></div>
+              <div id="ev-ranking-wrap" style="display:none"><label>Rang initial <small style="font-weight:400;color:var(--hint)">(avant compét.)</small></label><input type="number" id="ev-ranking" placeholder="12" min="1"></div>
               <div style="display:flex;align-items:flex-end">
                 <button class="btn btn-primary" style="width:100%" onclick="saveEvent()">+ Ajouter</button>
               </div>
@@ -460,8 +461,8 @@
               <button class="btn btn-sm" onclick="loadEvents()">↺</button>
             </div>
             <table class="data-table">
-              <thead><tr><th>Nageur</th><th>Épreuve</th><th>Tour</th><th>Date</th><th>Heure</th><th>T. engagement</th><th></th></tr></thead>
-              <tbody id="events-list"><tr><td colspan="7" class="empty">Aucune épreuve</td></tr></tbody>
+              <thead><tr><th>Nageur</th><th>Épreuve</th><th>Tour</th><th>Date</th><th>Heure</th><th>T. engagement</th><th>Rang init.</th><th></th></tr></thead>
+              <tbody id="events-list"><tr><td colspan="8" class="empty">Aucune épreuve</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -995,13 +996,16 @@ function applyCompTypeToEventForm() {
   const tourSel = document.getElementById('ev-tour');
   const note = document.getElementById('ev-tour-note');
   if (!tourSel) return;
+  const rankingWrap = document.getElementById('ev-ranking-wrap');
   if (comp && comp.type_competition === 'COMEN') {
-    tourSel.value = 'finale';   // classement au temps = une seule finale
+    tourSel.value = 'finale';
     tourSel.style.display = 'none';
     if (note) note.style.display = '';
+    if (rankingWrap) rankingWrap.style.display = '';
   } else {
     tourSel.style.display = '';
     if (note) note.style.display = 'none';
+    if (rankingWrap) { rankingWrap.style.display = 'none'; document.getElementById('ev-ranking').value = ''; }
   }
 }
 
@@ -1087,6 +1091,7 @@ async function loadEvents() {
       <td style="font-family:'DM Mono',monospace;font-size:12px">${fmtDate(e.date_epreuve)}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px">${e.heure || '—'}</td>
       <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${e.temps_engagement || '—'}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">${e.ranking_initial != null ? '#'+e.ranking_initial : '—'}</td>
       <td><div class="actions">
         <button class="btn btn-sm" onclick="editEvent('${e.id}')">✎</button>
         <button class="btn btn-sm btn-danger" onclick="deleteEvent('${e.id}')">✕</button>
@@ -1102,8 +1107,9 @@ async function saveEvent() {
   const typeComp = comp?.type_competition;
   const manualTour = v('ev-tour');
   const engagement = EPREUVES_SANS_ENGAGEMENT.includes(epreuve) ? null : (v('ev-engagement') || null);
+  const rankingRaw = document.getElementById('ev-ranking')?.value;
+  const ranking_initial = rankingRaw ? parseInt(rankingRaw) : null;
 
-  // Si un type de compétition est défini, générer les tours automatiquement
   if (typeComp && manualTour === 'auto') {
     const tours = getToursForEpreuve(epreuve, typeComp);
     const baseDate = new Date(date_epreuve);
@@ -1115,17 +1121,16 @@ async function saveEvent() {
       const { error } = await sb.from('events').insert({
         competition_id: activeCompId, athlete_id, epreuve,
         tour: t.tour, date_epreuve: dateStr,
-        heure: v('ev-heure') || null, temps_engagement: engagement
+        heure: v('ev-heure') || null, temps_engagement: engagement, ranking_initial
       });
       if (!error) ok++;
     }
     toast(`✓ ${ok} épreuve(s) créée(s) automatiquement`);
   } else {
-    // Mode manuel : un seul tour
     const { error } = await sb.from('events').insert({
       competition_id: activeCompId, athlete_id, epreuve,
       tour: manualTour, date_epreuve,
-      heure: v('ev-heure') || null, temps_engagement: engagement
+      heure: v('ev-heure') || null, temps_engagement: engagement, ranking_initial
     });
     if (error) return toast('Erreur : ' + error.message, 'error');
     toast('✓ Épreuve ajoutée');
@@ -1155,6 +1160,7 @@ async function editEvent(id) {
       <div><label>Date *</label><input type="date" id="edit-ev-date" value="${e.date_epreuve || ''}"></div>
       <div><label>Heure</label><input type="time" id="edit-ev-heure" value="${e.heure || ''}"></div>
       <div id="edit-ev-engagement-wrap" style="${sansEng ? 'display:none' : ''}"><label>Temps engagement</label><input type="text" id="edit-ev-engagement" value="${esc(e.temps_engagement)}" placeholder="58.42"></div>
+      <div id="edit-ev-ranking-wrap" style="${isComen ? '' : 'display:none'}"><label>Rang initial <small style="font-weight:400;color:var(--muted)">(avant compét.)</small></label><input type="number" id="edit-ev-ranking" value="${e.ranking_initial != null ? e.ranking_initial : ''}" placeholder="12" min="1"></div>
     </div>`;
 
   openEditModal('Modifier l\'épreuve', id, html, saveEditEvent);
@@ -1174,9 +1180,11 @@ async function saveEditEvent(id) {
   const epreuve = ev_('edit-ev-epreuve'), date_epreuve = ev_('edit-ev-date');
   if (!epreuve || !date_epreuve) return toast('Épreuve et date requis', 'error');
   const engagement = EPREUVES_SANS_ENGAGEMENT.includes(epreuve) ? null : (ev_('edit-ev-engagement') || null);
+  const rankingRaw = document.getElementById('edit-ev-ranking')?.value;
+  const ranking_initial = rankingRaw ? parseInt(rankingRaw) : null;
   const { error } = await sb.from('events').update({
     epreuve, tour: ev_('edit-ev-tour'), date_epreuve,
-    heure: ev_('edit-ev-heure') || null, temps_engagement: engagement
+    heure: ev_('edit-ev-heure') || null, temps_engagement: engagement, ranking_initial
   }).eq('id', id);
   if (error) return toast('Erreur : ' + error.message, 'error');
   toast('✓ Épreuve mise à jour');
@@ -1225,7 +1233,8 @@ async function confirmCSVImport() {
       competition_id: activeCompId, athlete_id: athlete.id,
       epreuve: row.epreuve, tour: row.tour || 'serie',
       date_epreuve: row.date, heure: row.heure || null,
-      temps_engagement: row.temps_engagement || null
+      temps_engagement: row.temps_engagement || null,
+      ranking_initial: row.ranking_initial ? parseInt(row.ranking_initial) : null
     });
     if (!error) ok++; else skip++;
   }
