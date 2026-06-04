@@ -37,6 +37,9 @@
     position: sticky; top: 0; z-index: 100;
   }
   .header-brand { display: flex; align-items: center; gap: 10px; }
+  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: background .15s, color .15s; white-space: nowrap; }
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+  .nav-active { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
   .header-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; }
   .header-title { color: #fff; font-size: 14px; font-weight: 500; }
   .comp-select-header { display: flex; align-items: center; gap: 8px; }
@@ -151,18 +154,20 @@
 <div class="header">
   <div class="header-brand">
     <div class="header-logo">FFN</div>
-    <div class="header-title" id="header-dashboard-title">Dashboard — Staff technique</div>
+    <div class="header-title" id="header-dashboard-title">Dashboard</div>
   </div>
-  <div class="comp-select-header">
-    <label>Compétition :</label>
-    <select id="header-comp-select" onchange="onCompChange()"><option value="">— Choisir —</option></select>
-  </div>
+  <nav style="display:flex;gap:4px">
+    <a id="admin-link" href="admin.html" class="nav-btn" style="display:none">⚙ Admin</a>
+    <a href="journal.html"   class="nav-btn">📓 Journal</a>
+    <a href="dashboard.html" class="nav-btn nav-active">📊 Dashboard</a>
+  </nav>
   <div style="display:flex;gap:8px;align-items:center">
-    <button onclick="exportDashboardPDF()" style="background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;font-size:13px;font-weight:500;padding:8px 12px;border-radius:4px;transition:all.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">
-      📥 PDF
-    </button>
-    <a id="admin-link" href="admin.html" style="display:none;color:rgba(255,255,255,0.8);font-size:12px;font-weight:500;text-decoration:none;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">⚙ Admin</a>
-    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Déconnexion</button>
+    <div class="comp-select-header" style="margin:0">
+      <label>Compétition :</label>
+      <select id="header-comp-select" onchange="onCompChange()"><option value="">— Choisir —</option></select>
+    </div>
+    <button onclick="exportDashboardPDF()" class="nav-btn" title="Exporter PDF">📥</button>
+    <button onclick="logout()" class="nav-btn" style="border:1px solid rgba(255,255,255,0.3)">Déconnexion</button>
   </div>
 </div>
 
