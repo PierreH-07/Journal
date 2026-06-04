@@ -26,9 +26,10 @@
   .header-brand { display: flex; align-items: center; gap: 10px; }
   .header-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
   .header-logo.staff { background: var(--teal); }
-  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.75); font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: background .15s, color .15s; white-space: nowrap; }
-  .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
-  .nav-active { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
+  .nav-bar { background: var(--navy); padding: 0 1.5rem 10px; display: flex; gap: 6px; position: sticky; top: 52px; z-index: 99; }
+  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: background .15s, color .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-active { background: rgba(255,255,255,0.18) !important; color: #fff !important; font-weight: 600; }
   .header-title { color: #fff; font-size: 14px; font-weight: 500; }
   .header-right { display: flex; align-items: center; gap: 12px; }
   .coach-name { color: rgba(255,255,255,0.7); font-size: 12px; }
@@ -205,17 +206,17 @@
     <div class="header-logo" id="header-logo">FFN</div>
     <div class="header-title" id="header-title">Journal de bord</div>
   </div>
-  <nav style="display:flex;gap:4px">
-    <a id="admin-link" href="admin.html" class="nav-btn" style="display:none">⚙ Admin</a>
-    <a href="journal.html"   class="nav-btn nav-active">📓 Journal</a>
-    <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
-  </nav>
   <div class="header-right">
     <span class="role-badge" id="role-badge">STAFF</span>
     <span class="coach-name" id="header-coach-name"></span>
     <span class="save-status" id="save-status">Non sauvegardé</span>
-    <button onclick="logout()" class="nav-btn" style="border:1px solid rgba(255,255,255,0.3)">Déconnexion</button>
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:5px 12px;border-radius:6px;font-family:'DM Sans',sans-serif">Déconnexion</button>
   </div>
+</div>
+<div class="nav-bar">
+  <a id="admin-link" href="admin.html" class="nav-btn" style="display:none">⚙️ Admin</a>
+  <a href="journal.html"   class="nav-btn nav-active">📓 Journal</a>
+  <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
 </div>
 
 <!-- ══════════════════════════════════
