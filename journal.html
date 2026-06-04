@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFN — Journal de bord</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/auth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap');
@@ -205,6 +206,7 @@
     <span class="role-badge" id="role-badge">STAFF</span>
     <span class="coach-name" id="header-coach-name"></span>
     <span class="save-status" id="save-status">Non sauvegardé</span>
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:5px 10px;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Déconnexion</button>
   </div>
 </div>
 
@@ -217,19 +219,19 @@
       <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21a9 9 0 0118 0"/></svg>
     </div>
     <div class="setup-title">Journal de bord</div>
-    <div class="setup-sub">Sélectionnez votre compétition et votre profil pour commencer.</div>
+    <div class="setup-sub" id="setup-sub">Sélectionnez votre compétition pour commencer.</div>
 
-    <div style="margin-bottom:12px">
+    <div id="dtn-no-coach-banner" style="display:none;margin-bottom:1rem;padding:12px;background:#FFF3EE;border:1px solid #F5C9B3;border-radius:8px;font-size:13px;color:#C05A20">
+      Aucun carnet ne vous est attribué — la synthèse est disponible dans le <a href="dashboard.html" style="color:#1B4F8A;text-decoration:underline">tableau de bord</a>.
+    </div>
+
+    <div style="margin-bottom:12px" id="setup-comp-wrap">
       <label>Compétition</label>
       <select id="setup-comp" onchange="onSetupCompChange()"><option value="">— Choisir —</option></select>
     </div>
-    <div style="margin-bottom:8px">
-      <label>Votre profil</label>
-      <select id="setup-coach" disabled onchange="onCoachChange()"><option value="">— D'abord choisir une compétition —</option></select>
-    </div>
     <div class="role-indicator" id="role-indicator"></div>
 
-    <div style="margin-top:1.5rem">
+    <div style="margin-top:1.5rem" id="setup-start-wrap">
       <button class="btn btn-primary" id="start-btn" style="width:100%;justify-content:center" onclick="startJournal()">Ouvrir le journal →</button>
     </div>
   </div>
@@ -1082,7 +1084,7 @@
   <div class="save-bar" id="save-bar" style="display:none">
     <div class="save-info" id="save-info">Données non sauvegardées</div>
     <div style="display:flex;gap:8px">
-      <button class="btn" onclick="resetSetup()">← Changer de profil</button>
+      <button class="btn" onclick="resetSetup()">← Changer de compétition</button>
       <button class="btn btn-accent" id="save-btn" onclick="saveCurrentPhase()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
         Sauvegarder
@@ -1094,9 +1096,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://bpdxdljctybdmtemubjh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwZHhkbGpjdHliZG10ZW11YmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzA2MTgsImV4cCI6MjA5NTU0NjYxOH0.b5GKWWTWTsrYPGmVPvexLWqAiQvkMl43Pzo96mz6lQw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// sb, requireSession, getRole, getCoachId, logout fournis par assets/auth.js
 
 // ── AFFICHEUR D'ERREURS (diagnostic à distance) ────────────
 function showFatalError(msg) {
@@ -1369,6 +1369,46 @@ function applyPhase(phases) {
 
 // ── SETUP ──────────────────────────────────────────────────
 async function initSetup() {
+  const session = await requireSession();
+  if (!session) return;
+
+  const myCoachId = getCoachId(session);
+  activeCoachId = myCoachId;
+
+  if (!myCoachId) {
+    // DTN sans carnet : afficher bandeau, masquer saisie
+    document.getElementById('dtn-no-coach-banner').style.display = 'block';
+    document.getElementById('setup-comp-wrap').style.display = 'none';
+    document.getElementById('setup-start-wrap').style.display = 'none';
+    document.getElementById('setup-sub').style.display = 'none';
+    return;
+  }
+
+  // Déterminer le rôle staff depuis la base
+  let activeRoleFromDb = 'entraineur';
+  const { data: coachData } = await sb.from('coaches').select('role, prenom, nom').eq('id', myCoachId).maybeSingle();
+  if (coachData?.role === 'staff_responsable') activeRoleFromDb = 'staff_responsable';
+  activeRole = activeRoleFromDb;
+
+  // Afficher le nom du coach connecté dans le header
+  if (coachData) {
+    document.getElementById('header-coach-name').textContent = coachData.prenom + ' ' + coachData.nom;
+    if (activeRole === 'staff_responsable') {
+      document.getElementById('header-logo').classList.add('staff');
+      document.getElementById('role-badge').classList.add('visible');
+    }
+  }
+
+  // Afficher l'indicateur de rôle sur l'écran de setup
+  const ind = document.getElementById('role-indicator');
+  if (activeRole === 'staff_responsable') {
+    ind.className = 'role-indicator staff';
+    ind.textContent = '★ Profil Responsable d\'équipe — questionnaire staff';
+  } else {
+    ind.className = 'role-indicator entraineur';
+    ind.textContent = 'Profil Entraîneur — journal de bord';
+  }
+
   const { data: comps } = await sb.from('competitions').select('*').order('date_debut', { ascending: false });
   const sel = document.getElementById('setup-comp');
   (comps || []).forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nom; sel.appendChild(o); });
@@ -1378,58 +1418,14 @@ async function initSetup() {
 
 async function onSetupCompChange() {
   activeCompId = document.getElementById('setup-comp').value;
-  const coachSel = document.getElementById('setup-coach');
-  coachSel.innerHTML = '<option value="">— Choisir —</option>';
-  coachSel.disabled = !activeCompId;
-  document.getElementById('role-indicator').className = 'role-indicator';
   if (!activeCompId) return;
   const { data: compData } = await sb.from('competitions').select('id, nom, date_stage_debut, date_stage_fin, date_voyage_aller, date_voyage_retour, date_debut, date_fin, date_bilan').eq('id', activeCompId).single();
   activeComp = compData;
-  const { data } = await sb.from('competition_coaches').select('*, coaches(*)').eq('competition_id', activeCompId);
-  (data || []).forEach(r => {
-    const o = document.createElement('option');
-    o.value = r.coach_id;
-    o.dataset.role = r.coaches.role || 'entraineur';
-    o.textContent = r.coaches.prenom + ' ' + r.coaches.nom + (r.coaches.role === 'staff_responsable' ? ' ★' : '');
-    coachSel.appendChild(o);
-  });
-}
-
-function onCoachChange() {
-  const sel = document.getElementById('setup-coach');
-  const opt = sel.options[sel.selectedIndex];
-  const role = opt?.dataset?.role || 'entraineur';
-  const ind = document.getElementById('role-indicator');
-  if (!opt?.value) { ind.className = 'role-indicator'; return; }
-  if (role === 'staff_responsable') {
-    ind.className = 'role-indicator staff';
-    ind.textContent = '★ Profil Responsable d\'équipe — questionnaire staff';
-  } else {
-    ind.className = 'role-indicator entraineur';
-    ind.textContent = 'Profil Entraîneur — journal de bord';
-  }
 }
 
 async function startJournal() {
-  activeCoachId = document.getElementById('setup-coach').value;
-  activeCompId  = document.getElementById('setup-comp').value;
-  if (!activeCoachId || !activeCompId) return toast('Sélectionner compétition et profil', 'error');
-
-  const sel = document.getElementById('setup-coach');
-  const opt = sel.options[sel.selectedIndex];
-  activeRole = opt?.dataset?.role || 'entraineur';
-
-  document.getElementById('header-coach-name').textContent = opt.textContent.replace(' ★','');
-  // Adapter le header selon le rôle
-  const logo = document.getElementById('header-logo');
-  const badge = document.getElementById('role-badge');
-  if (activeRole === 'staff_responsable') {
-    logo.classList.add('staff');
-    badge.classList.add('visible');
-  } else {
-    logo.classList.remove('staff');
-    badge.classList.remove('visible');
-  }
+  activeCompId = document.getElementById('setup-comp').value;
+  if (!activeCoachId || !activeCompId) return toast('Sélectionner une compétition', 'error');
 
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('journal-wrap').style.display = 'block';
@@ -1462,7 +1458,7 @@ async function startJournal() {
 function resetSetup() {
   document.getElementById('setup-screen').style.display = '';
   document.getElementById('journal-wrap').style.display = 'none';
-  activeCompId = activeCoachId = activeComp = null;
+  activeCompId = activeComp = null;
 }
 
 // ── CHARGEMENT DU JOUR ─────────────────────────────────────

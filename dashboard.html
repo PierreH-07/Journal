@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFN — Dashboard compétition</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/auth.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
@@ -150,16 +151,17 @@
 <div class="header">
   <div class="header-brand">
     <div class="header-logo">FFN</div>
-    <div class="header-title">Dashboard — Staff technique</div>
+    <div class="header-title" id="header-dashboard-title">Dashboard — Staff technique</div>
   </div>
   <div class="comp-select-header">
     <label>Compétition :</label>
     <select id="header-comp-select" onchange="onCompChange()"><option value="">— Choisir —</option></select>
   </div>
-  <div style="display:flex;gap:12px">
+  <div style="display:flex;gap:8px;align-items:center">
     <button onclick="exportDashboardPDF()" style="background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;font-size:13px;font-weight:500;padding:8px 12px;border-radius:4px;transition:all.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">
       📥 PDF
     </button>
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Déconnexion</button>
   </div>
 </div>
 
@@ -334,11 +336,8 @@
 </div>
 
 <script>
-const SUPABASE_URL = 'https://bpdxdljctybdmtemubjh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwZHhkbGpjdHliZG10ZW11YmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzA2MTgsImV4cCI6MjA5NTU0NjYxOH0.b5GKWWTWTsrYPGmVPvexLWqAiQvkMl43Pzo96mz6lQw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 let activeCompId = null;
+let _dashRole = 'dtn', _dashCoachId = null;
 let allJournals = [], allResults = [], allNationObs = [], allEvents = [];
 let allStaffEntries = [], allPrecompStaff = [], allPostcompStaff = [];
 let filterDate = 'all', filterCoach = 'all';
@@ -346,6 +345,19 @@ let currentTab = 'synthese', currentStaffSubTab = 'comp';
 
 // ── INIT ─────────────────────────────────────────────────
 async function init() {
+  const session = await requireSession();
+  if (!session) return;
+  _dashRole = getRole(session);
+  _dashCoachId = getCoachId(session);
+
+  if (_dashRole === 'entraineur') {
+    document.getElementById('header-dashboard-title').textContent = 'Ma synthèse';
+    ['entraineurs','staff','rapport'].forEach(t => {
+      const btn = document.querySelector(`.tab-btn[onclick="showTab('${t}')"]`);
+      if (btn) btn.style.display = 'none';
+    });
+  }
+
   const { data } = await sb.from('competitions').select('*').order('date_debut', { ascending: false });
   const sel = document.getElementById('header-comp-select');
   (data || []).forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nom; sel.appendChild(o); });
@@ -362,14 +374,24 @@ async function onCompChange() {
 }
 
 async function loadAllData() {
-  const [j, r, n, e, se, ps, pcs] = await Promise.all([
-    sb.from('journal_entries').select('*, coaches(*)').eq('competition_id', activeCompId).order('date_entree'),
-    sb.from('results').select('*, events(*, athletes(*)), coaches(*)').eq('competition_id', activeCompId),
-    sb.from('nation_observations').select('*, nations(*), coaches(*)').eq('competition_id', activeCompId),
+  const coachFilter = (_dashRole === 'entraineur' && _dashCoachId);
+  const jq = sb.from('journal_entries').select('*, coaches(*)').eq('competition_id', activeCompId).order('date_entree');
+  const rq = sb.from('results').select('*, events(*, athletes(*)), coaches(*)').eq('competition_id', activeCompId);
+  const nq = sb.from('nation_observations').select('*, nations(*), coaches(*)').eq('competition_id', activeCompId);
+  const seq = sb.from('staff_entries').select('*').eq('competition_id', activeCompId).order('date_entree');
+  const psq = sb.from('precomp_staff_entries').select('*').eq('competition_id', activeCompId).order('date_entree');
+  const pcsq = sb.from('postcomp_staff_entries').select('*').eq('competition_id', activeCompId);
+  if (coachFilter) {
+    jq.eq('coach_id', _dashCoachId);
+    rq.eq('coach_id', _dashCoachId);
+    nq.eq('coach_id', _dashCoachId);
+    seq.eq('coach_id', _dashCoachId);
+    psq.eq('coach_id', _dashCoachId);
+    pcsq.eq('coach_id', _dashCoachId);
+  }
+  const [j, r, n, e, se, ps, pcs] = await Promise.all([jq, rq, nq,
     sb.from('events').select('*, athletes(*)').eq('competition_id', activeCompId).order('date_epreuve').order('heure'),
-    sb.from('staff_entries').select('*').eq('competition_id', activeCompId).order('date_entree'),
-    sb.from('precomp_staff_entries').select('*').eq('competition_id', activeCompId).order('date_entree'),
-    sb.from('postcomp_staff_entries').select('*').eq('competition_id', activeCompId),
+    seq, psq, pcsq,
   ]);
   allJournals = j.data || [];
   allResults = r.data || [];

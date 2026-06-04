@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FFN — Administration</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/auth.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
@@ -188,7 +189,10 @@
     <div class="header-logo">FFN</div>
     <div class="header-title">Administration — Journal de bord</div>
   </div>
-  <div class="header-badge">ADMIN</div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="header-badge">ADMIN</div>
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Déconnexion</button>
+  </div>
 </div>
 
 <div class="layout">
@@ -567,9 +571,15 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = 'https://bpdxdljctybdmtemubjh.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwZHhkbGpjdHliZG10ZW11YmpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NzA2MTgsImV4cCI6MjA5NTU0NjYxOH0.b5GKWWTWTsrYPGmVPvexLWqAiQvkMl43Pzo96mz6lQw';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ── INIT AUTH ──────────────────────────────────────────────
+// _adminReady résout quand l'auth est confirmée ; les autres scripts attendent dessus.
+let _resolveAdminReady;
+const _adminReady = new Promise(res => { _resolveAdminReady = res; });
+(async () => {
+  const session = await requireRole('dtn');
+  if (!session) return;
+  _resolveAdminReady();
+})();
 
 // ── MAPPING TOURS PAR TYPE DE COMPÉTITION ─────────────────────────
 const EPREUVES_SANS_ENGAGEMENT = ['5km','7.5km','10km','Relais 4x1500m','KnockOut'];
@@ -1247,9 +1257,7 @@ function refreshAthleteSelects() {
 }
 
 // ── INIT ────────────────────────────────────────────────
-loadCompetitions();
-loadCoaches();
-loadAthletes();
+_adminReady.then(() => { loadCompetitions(); loadCoaches(); loadAthletes(); });
 </script>
 
 <!-- MODAL D'ÉDITION GÉNÉRIQUE -->
