@@ -161,6 +161,7 @@
     <button onclick="exportDashboardPDF()" style="background:none;border:none;color:rgba(255,255,255,0.8);cursor:pointer;font-size:13px;font-weight:500;padding:8px 12px;border-radius:4px;transition:all.2s;display:flex;align-items:center;gap:6px" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">
       📥 PDF
     </button>
+    <a id="admin-link" href="admin.html" style="display:none;color:rgba(255,255,255,0.8);font-size:12px;font-weight:500;text-decoration:none;padding:6px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.3);transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">⚙ Admin</a>
     <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);cursor:pointer;font-size:12px;font-weight:500;padding:6px 12px;border-radius:6px;font-family:'DM Sans',sans-serif;transition:all.2s" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='none'">Déconnexion</button>
   </div>
 </div>
@@ -349,6 +350,10 @@ async function init() {
   if (!session) return;
   _dashRole = getRole(session);
   _dashCoachId = getCoachId(session);
+
+  if (_dashRole === 'dtn') {
+    document.getElementById('admin-link').style.display = 'inline-block';
+  }
 
   if (_dashRole === 'entraineur') {
     document.getElementById('header-dashboard-title').textContent = 'Ma synthèse';
