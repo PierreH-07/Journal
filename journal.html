@@ -433,10 +433,9 @@
         <table class="result-table">
           <thead><tr><th>Élément</th><th style="width:160px">Statut</th><th>Observations</th></tr></thead>
           <tbody>
-            <tr><td>Tenues EDF</td><td><select id="mat-tenues" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-tenues-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Équipement compétition</td><td><select id="mat-equipement-comp" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-equipement-comp-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Équipement suivi et analyse</td><td><select id="mat-equipement-analyse" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-equipement-analyse-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Matériel médical et kiné</td><td><select id="mat-medical" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-medical-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Équipement sportif / entraînement</td><td><select id="mat-equipement-comp" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-equipement-comp-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Équipement suivi et analyse</td><td><select id="mat-equipement-analyse" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-equipement-analyse-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Matériel médical et kiné</td><td><select id="mat-medical" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="mat-medical-obs" placeholder="Observations…"></td></tr>
           </tbody>
         </table>
       </div>
@@ -687,10 +686,6 @@
 
   <!-- ════════ ZONE COMPÉTITION — STAFF ════════ -->
   <div id="zone-staff" style="display:none">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding:0 1rem;background:var(--surface2);border-radius:8px;padding:1rem">
-      <div style="font-weight:600;color:var(--navy)">Bilan Staff</div>
-      <button class="btn btn-sm" onclick="generateStaffPDF()" style="background:var(--blue-light);color:#fff">↓ Exporter PDF</button>
-    </div>
 
     <!-- ASPECTS LOGISTIQUES -->
     <div class="section" style="border-left:3px solid var(--blue-light)">
@@ -930,17 +925,16 @@
     <div class="section">
       <div class="section-head" onclick="toggleSection(this)">
         <div class="section-num green">III</div>
-        <div class="section-title">Bilan logistique</div>
+        <div class="section-title">Bilan Matériel et équipements</div>
         <div class="section-chevron open">▾</div>
       </div>
       <div class="section-body">
         <table class="result-table">
           <thead><tr><th>Élément</th><th style="width:160px">Statut</th><th>Observations</th></tr></thead>
           <tbody>
-            <tr><td>Tenues EDF</td><td><select id="pcs-mat-tenues" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-tenues-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Équipement technique compétition</td><td><select id="pcs-mat-equipement-comp" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-equipement-comp-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Équipement analyse</td><td><select id="pcs-mat-equipement-analyse" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-equipement-analyse-obs" placeholder="Observations…"></td></tr>
-            <tr><td>Matériel médical</td><td><select id="pcs-mat-medical" style="font-size:12px"><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-medical-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Équipement sportif / entraînement</td><td><select id="pcs-mat-equipement-comp" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-equipement-comp-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Équipement analyse</td><td><select id="pcs-mat-equipement-analyse" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-equipement-analyse-obs" placeholder="Observations…"></td></tr>
+            <tr><td>Matériel médical</td><td><select id="pcs-mat-medical" style="font-size:12px"><option value="Non concerné">Non concerné</option><option value="Conforme">Conforme</option><option value="Partiel">Partiel</option><option value="Insuffisant">Insuffisant</option></select></td><td><input type="text" id="pcs-mat-medical-obs" placeholder="Observations…"></td></tr>
           </tbody>
         </table>
         <div><label>Problèmes administratifs rencontrés</label><textarea id="pcs-problemes-admin" placeholder="Difficultés administratives, points à améliorer…"></textarea></div>
@@ -2000,10 +1994,10 @@ function fillPrecompStaffForm(d) {
     updateStaffSlider(sl, sid+'-val', 'var(--teal)');
     const obs = document.getElementById(oid); if (obs) obs.value = d?.[odb] || '';
   });
-  [['mat-tenues','mat_tenues'],['mat-equipement-comp','mat_equipement_comp'],['mat-equipement-analyse','mat_equipement_analyse'],['mat-medical','mat_medical']].forEach(([hid, dbk]) => {
+  [['mat-equipement-comp','mat_equipement_comp'],['mat-equipement-analyse','mat_equipement_analyse'],['mat-medical','mat_medical']].forEach(([hid, dbk]) => {
     const el = document.getElementById(hid); if (el) el.value = d?.[dbk] || 'Conforme';
   });
-  [['mat-tenues-obs','mat_tenues_obs'],['mat-equipement-comp-obs','mat_equipement_comp_obs'],['mat-equipement-analyse-obs','mat_equipement_analyse_obs'],['mat-medical-obs','mat_medical_obs'],
+  [['mat-equipement-comp-obs','mat_equipement_comp_obs'],['mat-equipement-analyse-obs','mat_equipement_analyse_obs'],['mat-medical-obs','mat_medical_obs'],
    ['log-observations','log_observations'],['ps-objectifs-groupe','objectifs_groupe'],['ps-scenarios-anticipes','scenarios_anticipes'],['ps-plans-contingence','plans_contingence'],
    ['ps-composition-staff','composition_staff'],['ps-roles-responsabilites','roles_responsabilites'],['ps-points-attention-staff','points_attention_staff'],['ps-observations-generales','observations_generales']
   ].forEach(([hid, dbk]) => { const el = document.getElementById(hid); if (el) el.value = d?.[dbk] || ''; });
@@ -2019,7 +2013,6 @@ async function savePrecompStaff() {
     groupe_forme_generale: gi('groupe-forme-generale'), groupe_forme_obs: g('groupe-forme-obs'),
     groupe_motivation: gi('groupe-motivation'), groupe_motivation_obs: g('groupe-motivation-obs'),
     groupe_cohesion: gi('groupe-cohesion'), groupe_cohesion_obs: g('groupe-cohesion-obs'),
-    mat_tenues: g('mat-tenues'), mat_tenues_obs: g('mat-tenues-obs'),
     mat_equipement_comp: g('mat-equipement-comp'), mat_equipement_comp_obs: g('mat-equipement-comp-obs'),
     mat_equipement_analyse: g('mat-equipement-analyse'), mat_equipement_analyse_obs: g('mat-equipement-analyse-obs'),
     mat_medical: g('mat-medical'), mat_medical_obs: g('mat-medical-obs'),
@@ -2083,10 +2076,10 @@ function fillPostcompStaffForm(d) {
   [['enc-reunion-equipe','enc_reunion_equipe'],['enc-briefing-staff','enc_briefing_staff'],['enc-briefing-nageurs','enc_briefing_nageurs'],
    ['enc-protocoles-medicaux','enc_protocoles_medicaux'],['enc-retour-experience','enc_retour_experience'],
   ].forEach(([hid,dbk]) => { const el=document.getElementById(hid); if(el) el.checked=d?.[dbk]||false; });
-  [['pcs-mat-tenues','log_mat_tenues'],['pcs-mat-equipement-comp','log_mat_equipement_comp'],['pcs-mat-equipement-analyse','log_mat_equipement_analyse'],['pcs-mat-medical','log_mat_medical']].forEach(([hid,dbk]) => {
+  [['pcs-mat-equipement-comp','log_mat_equipement_comp'],['pcs-mat-equipement-analyse','log_mat_equipement_analyse'],['pcs-mat-medical','log_mat_medical']].forEach(([hid,dbk]) => {
     const el=document.getElementById(hid); if(el) el.value=d?.[dbk]||'Conforme';
   });
-  [['pcs-mat-tenues-obs','log_mat_tenues_obs'],['pcs-mat-equipement-comp-obs','log_mat_equipement_comp_obs'],['pcs-mat-equipement-analyse-obs','log_mat_equipement_analyse_obs'],['pcs-mat-medical-obs','log_mat_medical_obs']].forEach(([hid,dbk]) => {
+  [['pcs-mat-equipement-comp-obs','log_mat_equipement_comp_obs'],['pcs-mat-equipement-analyse-obs','log_mat_equipement_analyse_obs'],['pcs-mat-medical-obs','log_mat_medical_obs']].forEach(([hid,dbk]) => {
     const el=document.getElementById(hid); if(el) el.value=d?.[dbk]||'';
   });
   ['bilan-sportif','bilan-encadrement','bilan-logistique','bilan-deplacement','bilan-organisation'].forEach(name => {
@@ -2111,7 +2104,6 @@ async function savePostcompStaff() {
     enc_reunion_equipe: gc('enc-reunion-equipe'), enc_briefing_staff: gc('enc-briefing-staff'),
     enc_briefing_nageurs: gc('enc-briefing-nageurs'), enc_protocoles_medicaux: gc('enc-protocoles-medicaux'),
     enc_retour_experience: gc('enc-retour-experience'), enc_incidents: g('enc-incidents'), enc_observations: g('enc-observations'),
-    log_mat_tenues: g('pcs-mat-tenues'), log_mat_tenues_obs: g('pcs-mat-tenues-obs'),
     log_mat_equipement_comp: g('pcs-mat-equipement-comp'), log_mat_equipement_comp_obs: g('pcs-mat-equipement-comp-obs'),
     log_mat_equipement_analyse: g('pcs-mat-equipement-analyse'), log_mat_equipement_analyse_obs: g('pcs-mat-equipement-analyse-obs'),
     log_mat_medical: g('pcs-mat-medical'), log_mat_medical_obs: g('pcs-mat-medical-obs'),
