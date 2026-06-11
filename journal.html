@@ -26,10 +26,12 @@
   .header-brand { display: flex; align-items: center; gap: 10px; }
   .header-logo { width: 28px; height: 28px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; }
   .header-logo.staff { background: var(--teal); }
-  .nav-bar { background: var(--navy); padding: 0 1.5rem 10px; display: flex; gap: 6px; position: sticky; top: 52px; z-index: 99; }
-  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.65); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: background .15s, color .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
-  .nav-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .nav-bar { background: var(--navy); padding: 0 1.5rem 10px; display: flex; gap: 6px; align-items: center; position: sticky; top: 52px; z-index: 99; }
+  .nav-btn { background: none; border: none; color: rgba(255,255,255,0.85); font-size: 13px; font-weight: 500; padding: 7px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif; transition: background .15s, color .15s; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+  .nav-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
   .nav-active { background: rgba(255,255,255,0.18) !important; color: #fff !important; font-weight: 600; }
+  .nav-save-sticky { margin-left: auto; background: var(--accent); border: none; color: #fff; font-size: 13px; font-weight: 600; padding: 6px 16px; border-radius: 8px; cursor: pointer; font-family: 'DM Sans', sans-serif; display: inline-flex; align-items: center; gap: 6px; transition: background .15s; }
+  .nav-save-sticky:hover { background: #c85520; }
   .header-title { color: #fff; font-size: 14px; font-weight: 500; }
   .header-right { display: flex; align-items: center; gap: 12px; }
   .coach-name { color: rgba(255,255,255,0.7); font-size: 12px; }
@@ -220,7 +222,7 @@
   <a id="admin-link" href="admin.html" class="nav-btn" style="display:none">⚙️ Admin</a>
   <a href="journal.html"   class="nav-btn nav-active">📓 Journal</a>
   <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
-  <button id="nav-save-btn" onclick="saveCurrentPhase()" style="display:none;margin-left:auto;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;padding:6px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:6px;transition:background .15s" onmouseover="this.style.background='#c85520'" onmouseout="this.style.background='var(--accent)'">
+  <button id="nav-save-btn" onclick="saveCurrentPhase()" class="nav-save-sticky" style="display:none">
     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
     Sauvegarder
   </button>
