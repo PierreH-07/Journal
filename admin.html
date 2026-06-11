@@ -400,7 +400,9 @@
             <div class="card">
               <div class="card-title">Nageurs de la compétition</div>
               <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap">
-                <select id="add-athlete-select" style="flex:1;min-width:120px"><option value="">— Nageur —</option></select>
+                <input type="text" id="add-athlete-input" list="add-athlete-datalist" placeholder="Taper un nom…" autocomplete="off" oninput="onAddAthleteInput()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none">
+                <datalist id="add-athlete-datalist"></datalist>
+                <input type="hidden" id="add-athlete-select">
                 <select id="add-athlete-coach" style="flex:1;min-width:120px"><option value="">— Entraîneur —</option></select>
                 <button class="btn btn-sm btn-primary" onclick="addAthleteToComp()">Ajouter</button>
               </div>
@@ -461,6 +463,10 @@
             <div class="section-header">
               <div class="card-title">Programme enregistré <span id="events-count">0</span></div>
               <button class="btn btn-sm" onclick="loadEvents()">↺</button>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <input type="text" id="filter-athlete" placeholder="🔍 Filtrer par nageur…" oninput="filterEvents()" style="flex:1;min-width:140px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none">
+              <input type="text" id="filter-epreuve" placeholder="🔍 Filtrer par épreuve…" oninput="filterEvents()" style="flex:1;min-width:140px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none">
             </div>
             <table class="data-table">
               <thead><tr><th>Nageur</th><th>Épreuve</th><th>Tour</th><th>Date</th><th>Heure</th><th>T. engagement</th><th>Rang init.</th><th></th></tr></thead>
@@ -1091,7 +1097,7 @@ async function loadEvents() {
   const tbody = document.getElementById('events-list');
   if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Aucune épreuve</td></tr>'; return; }
   tbody.innerHTML = data.map(e => `
-    <tr>
+    <tr data-athlete="${(e.athletes.prenom+' '+e.athletes.nom).toLowerCase()}" data-epreuve="${e.epreuve.toLowerCase()}">
       <td>${e.athletes.prenom} ${e.athletes.nom}</td>
       <td>${e.epreuve}</td>
       <td>${badgeTour(e.tour)}</td>
@@ -1280,12 +1286,28 @@ function refreshCoachSelects() {
   if (sel) sel.innerHTML = '<option value="">— Sélectionner —</option>' + allCoaches.map(c => `<option value="${c.id}">${c.prenom} ${c.nom}</option>`).join('');
 }
 function refreshAthleteSelects() {
-  // select liaison nageur/compétition (inchangé)
-  const sel = document.getElementById('add-athlete-select');
-  if (sel) sel.innerHTML = '<option value="">— Sélectionner —</option>' + allAthletes.map(a => `<option value="${a.id}">${a.prenom} ${a.nom}</option>`).join('');
-  // datalist du champ autocomplete
+  const opts = allAthletes.map(a => `<option value="${a.prenom} ${a.nom}" data-id="${a.id}">`).join('');
   const dl = document.getElementById('ev-athlete-list');
-  if (dl) dl.innerHTML = allAthletes.map(a => `<option value="${a.prenom} ${a.nom}" data-id="${a.id}">`).join('');
+  if (dl) dl.innerHTML = opts;
+  const dl2 = document.getElementById('add-athlete-datalist');
+  if (dl2) dl2.innerHTML = opts;
+}
+
+function onAddAthleteInput() {
+  const input = document.getElementById('add-athlete-input').value.trim();
+  const hidden = document.getElementById('add-athlete-select');
+  const match = allAthletes.find(a => `${a.prenom} ${a.nom}` === input);
+  hidden.value = match ? match.id : '';
+}
+
+function filterEvents() {
+  const fA = document.getElementById('filter-athlete').value.trim().toLowerCase();
+  const fE = document.getElementById('filter-epreuve').value.trim().toLowerCase();
+  document.querySelectorAll('#events-list tr[data-athlete]').forEach(tr => {
+    const athlete = (tr.dataset.athlete || '').toLowerCase();
+    const epreuve = (tr.dataset.epreuve || '').toLowerCase();
+    tr.style.display = ((!fA || athlete.includes(fA)) && (!fE || epreuve.includes(fE))) ? '' : 'none';
+  });
 }
 
 function onAthleteInput() {
