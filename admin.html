@@ -416,7 +416,9 @@
             <div class="form-grid-3">
               <div>
                 <label>Nageur *</label>
-                <select id="ev-athlete"><option value="">—</option></select>
+                <input type="text" id="ev-athlete-input" list="ev-athlete-list" placeholder="Taper un nom…" autocomplete="off" oninput="onAthleteInput()" style="width:100%">
+                <datalist id="ev-athlete-list"></datalist>
+                <input type="hidden" id="ev-athlete">
               </div>
               <div>
                 <label>Épreuve *</label>
@@ -1079,7 +1081,12 @@ async function removeAthleteFromComp(id) {
 async function loadEvents() {
   if (!activeCompId) return;
   applyCompTypeToEventForm();
-  const { data } = await sb.from('events').select('*, athletes(*)').eq('competition_id', activeCompId).order('date_epreuve').order('heure');
+  const { data: rawEvents } = await sb.from('events').select('*, athletes(*)').eq('competition_id', activeCompId).order('date_epreuve').order('heure');
+  const data = (rawEvents || []).slice().sort((a, b) => {
+    const na = (a.athletes?.nom + ' ' + a.athletes?.prenom).toLowerCase();
+    const nb = (b.athletes?.nom + ' ' + b.athletes?.prenom).toLowerCase();
+    return na.localeCompare(nb, 'fr');
+  });
   document.getElementById('events-count').textContent = (data || []).length;
   const tbody = document.getElementById('events-list');
   if (!data || !data.length) { tbody.innerHTML = '<tr><td colspan="7" class="empty">Aucune épreuve</td></tr>'; return; }
@@ -1134,6 +1141,8 @@ async function saveEvent() {
     });
     if (error) return toast('Erreur : ' + error.message, 'error');
     toast('✓ Épreuve ajoutée');
+    document.getElementById('ev-athlete-input').value = '';
+    document.getElementById('ev-athlete').value = '';
   }
   loadEvents();
 }
@@ -1271,8 +1280,19 @@ function refreshCoachSelects() {
   if (sel) sel.innerHTML = '<option value="">— Sélectionner —</option>' + allCoaches.map(c => `<option value="${c.id}">${c.prenom} ${c.nom}</option>`).join('');
 }
 function refreshAthleteSelects() {
+  // select liaison nageur/compétition (inchangé)
   const sel = document.getElementById('add-athlete-select');
   if (sel) sel.innerHTML = '<option value="">— Sélectionner —</option>' + allAthletes.map(a => `<option value="${a.id}">${a.prenom} ${a.nom}</option>`).join('');
+  // datalist du champ autocomplete
+  const dl = document.getElementById('ev-athlete-list');
+  if (dl) dl.innerHTML = allAthletes.map(a => `<option value="${a.prenom} ${a.nom}" data-id="${a.id}">`).join('');
+}
+
+function onAthleteInput() {
+  const input = document.getElementById('ev-athlete-input').value.trim();
+  const hidden = document.getElementById('ev-athlete');
+  const match = allAthletes.find(a => `${a.prenom} ${a.nom}` === input);
+  hidden.value = match ? match.id : '';
 }
 
 // ── INIT ────────────────────────────────────────────────

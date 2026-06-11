@@ -173,7 +173,9 @@
   .postcomp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 
   /* ── SAVE BAR ── */
-  .save-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; position: sticky; bottom: 1rem; box-shadow: 0 4px 20px rgba(10,22,40,.12); }
+  .save-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; position: sticky; bottom: 1rem; box-shadow: 0 4px 24px rgba(10,22,40,.18); z-index: 50; }
+  #save-btn { font-size: 14px; padding: 10px 24px; font-weight: 700; background: var(--accent); border-color: var(--accent); color: #fff; }
+  #save-btn:hover { background: #c85520; }
   .save-info { font-size: 12px; color: var(--muted); }
 
   /* ── BUTTONS ── */
@@ -218,6 +220,10 @@
   <a id="admin-link" href="admin.html" class="nav-btn" style="display:none">⚙️ Admin</a>
   <a href="journal.html"   class="nav-btn nav-active">📓 Journal</a>
   <a href="dashboard.html" class="nav-btn">📊 Dashboard</a>
+  <button id="nav-save-btn" onclick="saveCurrentPhase()" style="display:none;margin-left:auto;background:var(--accent);border:none;color:#fff;font-size:13px;font-weight:600;padding:6px 16px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;display:none;align-items:center;gap:6px;transition:background .15s" onmouseover="this.style.background='#c85520'" onmouseout="this.style.background='var(--accent)'">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+    Sauvegarder
+  </button>
 </div>
 
 <!-- ══════════════════════════════════
@@ -1438,6 +1444,8 @@ async function startJournal() {
 
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('journal-wrap').style.display = 'block';
+  const nsb = document.getElementById('nav-save-btn');
+  if (nsb) { nsb.style.display = 'inline-flex'; }
 
   // Garantir que les dates de la compétition sont chargées (évite une course
   // réseau : clic « Ouvrir » avant la fin du préchargement async => activeComp null
@@ -1467,6 +1475,8 @@ async function startJournal() {
 function resetSetup() {
   document.getElementById('setup-screen').style.display = '';
   document.getElementById('journal-wrap').style.display = 'none';
+  const nsb = document.getElementById('nav-save-btn');
+  if (nsb) nsb.style.display = 'none';
   activeCompId = activeComp = null;
 }
 
